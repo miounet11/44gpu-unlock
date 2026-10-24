@@ -1,9 +1,10 @@
 # GPU Unlock — usage guide
 
-This is the usage walkthrough for [gpu-unlock.com](https://gpu-unlock.com), the documentation site for the two NVIDIA SM speed-select override modules:
+This is the usage walkthrough for [gpu-unlock.com](https://gpu-unlock.com), the documentation site for the three NVIDIA SM speed-select override modules:
 
 - **Ampere (RTX 30 / GA102–GA106):** [Zagitta/gpu-unlock](https://github.com/Zagitta/gpu-unlock) — the module this repository mirrors.
 - **Ada (RTX 40 / AD102, AD103 experimental):** [JustAResearcher/gpu-unlock-ada](https://github.com/JustAResearcher/gpu-unlock-ada)
+- **Turing (RTX 20 / TU102–TU106):** [nlzy/turing-unlock](https://github.com/nlzy/turing-unlock)
 
 Every number quoted below is reproduced on the site's [benchmarks page](https://gpu-unlock.com/en/benchmarks) with links back to the upstream evidence files. Nothing on the site or in this guide is extrapolated.
 
@@ -19,6 +20,42 @@ Linux only. The module must load before the stock NVIDIA driver, which is why th
 - The stock NVIDIA proprietary driver (the module does not replace it)
 - Root access for installation
 - **Not supported:** Windows (no equivalent pre-driver hook), macOS, and laptops with hybrid graphics where the dGPU is never enumerated at boot
+
+## Which module do I need?
+
+| Your card | Chip | Module | Kernel parameter |
+| --- | --- | --- | --- |
+| RTX 4090 / 4070 Ti SUPER | AD102 / AD103 | `gpu_unlock` (Ada fork) | `gpu_unlock.targets=` |
+| RTX 30 series | GA102–GA106 | `gpu_unlock` (Ampere fork) | `gpu_unlock.targets=` |
+| RTX 20 series | TU102 / TU104 / TU106 | `turing_unlock` (separate module) | `turing_unlock.targets=` |
+
+The Turing module is a different codebase, not a fork of this one. It accepts 19 PCI IDs across TU102, TU104 and TU106; only the RTX 2080 Ti (`10de:1e07`) has published numbers. `gpu_unlock.targets=` does nothing on an RTX 20 card, and `turing_unlock.targets=` does nothing on an RTX 30/40 card.
+
+## Install (Turing, RTX 20 series)
+
+```sh
+git clone https://github.com/nlzy/turing-unlock
+cd turing-unlock
+make install
+```
+
+`make install` detects the distribution family and dispatches to `install-arch`, `install-deb` or `install-rpm`. The build downloads two pinned NVIDIA files into `~/.cache/turing-unlock/inputs` (use `make inputs` to fetch them ahead of time, or `INPUTS=` to move the cache). Then add the parameter to the kernel command line:
+
+```sh
+# all supported Turing cards
+turing_unlock.targets=all
+
+# or one card by PCI address, as printed by lspci -D
+turing_unlock.targets=0000:21:00.0
+```
+
+Verify after reboot:
+
+```sh
+journalctl -k -b | grep turing_unlock
+```
+
+A successful run logs `turing_unlock: unlocked`. `unlock failed (-16)` is `EBUSY`: a driver had already bound the card, which means the initramfs ordering is wrong. Without the parameter the module loads and does nothing at all — that is the most common silent failure.
 
 ## Install (Ampere, this repository)
 

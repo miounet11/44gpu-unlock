@@ -3,7 +3,11 @@
 Unlock FP/BF16 instruction issue rate on Nvidia 3000's cards to their professional equivalents
 
 > **Documentation site:** [gpu-unlock.com](https://gpu-unlock.com) — supported cards, measured stock-vs-unlocked benchmarks, per-distro install steps and FAQ. The [USAGE.md](USAGE.md) in this repository is the full usage walkthrough.
-> Ada (RTX 4090) support: [JustAResearcher/gpu-unlock-ada](https://github.com/JustAResearcher/gpu-unlock-ada)
+>
+> Other architectures, each with its own module and kernel parameter:
+>
+> - Ada (RTX 4090): [JustAResearcher/gpu-unlock-ada](https://github.com/JustAResearcher/gpu-unlock-ada)
+> - Turing (RTX 20 series): [nlzy/turing-unlock](https://github.com/nlzy/turing-unlock) — separate codebase, `turing_unlock.targets=`; documented at [gpu-unlock.com/en/gpus](https://gpu-unlock.com/en/gpus)
 
 This Linux kernel module combines the CMP unlocker's V67/PLM technique with the pre-driver timing of the UEFI approach. It runs the unlock, writes the speed selectors (SS0 `0x88888888`, which selects the full BF16 rate, and the 4-bit SS1 `0x8` IMLA4) and performs FLR before the unmodified NVIDIA driver binds the card. It is neither a UEFI application nor a patched NVIDIA driver. 
 
